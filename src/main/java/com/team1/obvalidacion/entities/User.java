@@ -41,9 +41,7 @@ public class User {
             inverseJoinColumns = {
                     @JoinColumn(name = "ROLE_ID") })
 
-
     private Set<Role> roles;
-
 
     @Column
     private boolean validated;

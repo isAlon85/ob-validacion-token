@@ -38,7 +38,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping(ROOT + "/users")
     @ApiOperation("Find all Users in DB")
     public ResponseEntity<List<User>> findAll() {

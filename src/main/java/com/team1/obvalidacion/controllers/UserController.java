@@ -88,6 +88,7 @@ public class UserController {
         return result;
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping(ROOT + "/users/" + "{id}")
     @ApiOperation("Delete a User in DB by ID")
     public ResponseEntity delete(@PathVariable Long id) {
@@ -99,6 +100,7 @@ public class UserController {
         return result;
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping(ROOT + "/users/" + "restartDB")
     public ResponseEntity deleteAll(@RequestHeader HttpHeaders headers) {
         ResponseEntity result = userService.deleteAll();

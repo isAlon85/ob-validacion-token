@@ -127,16 +127,20 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id))
             return ResponseEntity.notFound().build();
 
+        userRepository.findById(id).get().setRoles(null);
         userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity deleteAll(){
+    public ResponseEntity deleteAll() {
 
         if (userRepository.count() == 0)
             return ResponseEntity.notFound().build();
 
+        for (long i = 0; i < userRepository.count(); i++){
+            userRepository.findById(userRepository.count() - i).get().setRoles(null);
+            }
         userRepository.deleteAll();
         return ResponseEntity.noContent().build();
     }

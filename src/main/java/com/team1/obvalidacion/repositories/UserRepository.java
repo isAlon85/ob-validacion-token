@@ -1,5 +1,6 @@
 package com.team1.obvalidacion.repositories;
 
+import com.team1.obvalidacion.entities.FrontId;
 import com.team1.obvalidacion.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,5 +15,9 @@ public interface UserRepository extends JpaRepository<User,Long> {
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);
+
+    Optional<User> findByFrontId(FrontId frontId);
+
+    Boolean existsByFrontId(FrontId frontId);
 
 }

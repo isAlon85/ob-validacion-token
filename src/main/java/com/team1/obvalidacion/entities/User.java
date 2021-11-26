@@ -43,6 +43,9 @@ public class User {
 
     private Set<Role> roles;
 
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private FrontId frontId;
+
     @Column
     private boolean validated;
 
@@ -130,6 +133,14 @@ public class User {
 
     public void setRejected(boolean rejected) {
         this.rejected = rejected;
+    }
+
+    public FrontId getFrontId() {
+        return frontId;
+    }
+
+    public void setFrontId(FrontId frontId) {
+        this.frontId = frontId;
     }
 
     @Override

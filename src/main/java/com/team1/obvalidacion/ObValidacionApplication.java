@@ -1,5 +1,6 @@
 package com.team1.obvalidacion;
 
+import com.team1.obvalidacion.repositories.BackIdRepository;
 import com.team1.obvalidacion.repositories.FrontIdRepository;
 import com.team1.obvalidacion.repositories.RoleRepository;
 import com.team1.obvalidacion.repositories.UserRepository;
@@ -15,11 +16,12 @@ public class ObValidacionApplication {
 		UserRepository userRepository = context.getBean(UserRepository.class);
 		RoleRepository roleRepository = context.getBean(RoleRepository.class);
 		FrontIdRepository frontIdRepository = context.getBean(FrontIdRepository.class);
+		BackIdRepository backIdRepository = context.getBean(BackIdRepository.class);
 
 		System.out.println("User's number in DB when API initialized: " + userRepository.count());
 		System.out.println("Role's number in DB when API initialized: " + roleRepository.count());
 		System.out.println("FrontId's number in DB when API initialized: " + frontIdRepository.count());
-
+		System.out.println("BackId's number in DB when API initialized: " + backIdRepository.count());
 
 	}
 }

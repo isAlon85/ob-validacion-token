@@ -46,6 +46,9 @@ public class User {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FrontId frontId;
 
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private BackId backId;
+
     @Column
     private boolean validated;
 
@@ -143,18 +146,11 @@ public class User {
         this.frontId = frontId;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", roles=" + roles +
-                ", validated=" + validated +
-                ", rejected=" + rejected +
-                '}';
+    public BackId getBackId() {
+        return backId;
+    }
+
+    public void setBackId(BackId backId) {
+        this.backId = backId;
     }
 }

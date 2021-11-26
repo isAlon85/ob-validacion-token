@@ -2,8 +2,10 @@ package com.team1.obvalidacion.services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.team1.obvalidacion.entities.BackId;
 import com.team1.obvalidacion.entities.FrontId;
 import com.team1.obvalidacion.entities.User;
+import com.team1.obvalidacion.repositories.BackIdRepository;
 import com.team1.obvalidacion.repositories.FrontIdRepository;
 import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
@@ -34,6 +36,9 @@ public class CloudinaryService {
 
     @Autowired
     private FrontIdRepository frontIdRepository;
+
+    @Autowired
+    private BackIdRepository backIdRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -79,6 +84,38 @@ public class CloudinaryService {
         //Deleting frontId
         Map result = cloudinary.uploader().destroy(id, ObjectUtils.emptyMap());
         frontIdRepository.delete(frontIdRepository.findByCloudinaryId(id));
+        return result;
+    }
+
+    public Map uploadBackId(MultipartFile multipartFile, HttpServletRequest req) throws IOException {
+        File file = convert(multipartFile);
+        BackId backId = new BackId();
+        Map result = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
+        // Save frontId data from image
+        result.forEach((key, value) -> {
+            if (Objects.equals(key, "secure_url")) backId.setUrl((String) value);
+            if (Objects.equals(key, "public_id")) backId.setCloudinaryId((String) value);
+        });
+        backIdRepository.save(backId);
+        //Retrieving username from Token
+        String authToken = req.getHeader(HEADER_STRING).replace(TOKEN_PREFIX,"");
+        String username = jwtTokenUtil.getUsernameFromToken(authToken);
+        //Connecting picture with proper User
+        Optional<User> user = userRepository.findByUsername(username);
+        user.get().setBackId(backId);
+        userRepository.save(user.get());
+        return result;
+    }
+
+    public Map deleteBackId(String id) throws IOException {
+        //Connecting picture with proper User
+        BackId backId = backIdRepository.findByCloudinaryId(id);
+        Optional<User> user = userRepository.findByBackId(backId);
+        user.get().setBackId(null);
+        userRepository.save(user.get());
+        //Deleting frontId
+        Map result = cloudinary.uploader().destroy(id, ObjectUtils.emptyMap());
+        backIdRepository.delete(backIdRepository.findByCloudinaryId(id));
         return result;
     }
     

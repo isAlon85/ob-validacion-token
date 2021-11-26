@@ -18,7 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -45,6 +45,7 @@ public class UserController {
         return userService.findAll();
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping(ROOT + "/users/" + "{id}")
     @ApiOperation("Find a User in DB by ID")
     public ResponseEntity<User> findOneById(@PathVariable Long id) {
@@ -73,10 +74,10 @@ public class UserController {
         return result;
     }
 
-    @PutMapping(ROOT + "/users/" + "{id}")
+    @PatchMapping(ROOT + "/users/" + "{id}")
     @ApiOperation("Update a User in DB with a JSON")
-    public ResponseEntity<User> updateBook(@RequestBody User user) {
-        ResponseEntity<User> result = userService.update(user);
+    public ResponseEntity<User> patchUser(@PathVariable Long id, @RequestBody Map<Object, Object> fields) {
+        ResponseEntity<User> result = userService.patch(id, fields);
 
         if (result.getStatusCode().equals(HttpStatus.BAD_REQUEST))
             log.warn("Trying to update a User without ID");

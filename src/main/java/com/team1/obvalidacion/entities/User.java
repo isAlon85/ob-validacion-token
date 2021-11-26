@@ -46,6 +46,9 @@ public class User {
     @Column
     private boolean validated;
 
+    @Column
+    private boolean rejected;
+
     public User() {
     }
 
@@ -119,5 +122,28 @@ public class User {
 
     public void setValidated(boolean validated) {
         this.validated = validated;
+    }
+
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    public void setRejected(boolean rejected) {
+        this.rejected = rejected;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", roles=" + roles +
+                ", validated=" + validated +
+                ", rejected=" + rejected +
+                '}';
     }
 }

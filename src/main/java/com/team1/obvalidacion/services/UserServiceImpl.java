@@ -18,12 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -76,7 +75,6 @@ public class UserServiceImpl implements UserService {
                     .status(HttpStatus.CONFLICT)
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
-
         // Create new user's account
         User user = new User(encoder.encode(signUpRequest.getPassword()), signUpRequest.getEmail(), signUpRequest.getName(), signUpRequest.getSurname());
 
@@ -84,6 +82,7 @@ public class UserServiceImpl implements UserService {
         Set<Role> roleSet = new HashSet<>();
         roleSet.add(role);
         user.setValidated(false);
+        user.setRejected(false);
 
         if (user.getEmail().split("@")[1].equals("validation.com")){
             role = roleService.findByName("ADMIN");
@@ -103,35 +102,23 @@ public class UserServiceImpl implements UserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtTokenUtil.generateToken(authentication);
         Optional<User> user = userRepository.findByUsername(loginRequest.getUsername());
-        // UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        //UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(new JwtResponse(jwt, user.get().getName(), user.get().getSurname(), user.get().getRoles()));
     }
 
-
     @Override
-    public ResponseEntity<User> update(User user){
-
-        if (user.getId() == null)
-            return ResponseEntity.badRequest().build();
-
-        if (!userRepository.existsById(user.getId()))
-            return ResponseEntity.notFound().build();
-
-//        for (int i = 0; i < regUserRepository.count(); i++){
-//            if (Objects.equals(regUser.getEmail(), regUserRepository.findAll().get(i).getEmail())) {
-//                return ResponseEntity.badRequest().build();
-//            }
-//        }
-//
-//        for (int i = 0; i < regUserRepository.count(); i++){
-//            if (Objects.equals(regUser.getUsername(), regUserRepository.findAll().get(i).getUsername())) {
-//                return ResponseEntity.badRequest().build();
-//            }
-//        }
-
-        user.setPassword(bcryptEncoder.encode(user.getPassword()));
-        User result = userRepository.save(user);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<User> patch(Long id, Map<Object, Object> fields){
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            fields.forEach((key, value) -> {
+                Field field = ReflectionUtils.findField(User.class, (String) key);
+                field.setAccessible(true);
+                ReflectionUtils.setField(field, user.get(), value);
+            });
+            User result = userRepository.save(user.get());
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @Override

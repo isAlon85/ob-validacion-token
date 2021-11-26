@@ -5,10 +5,10 @@ import com.team1.obvalidacion.security.payload.JwtResponse;
 import com.team1.obvalidacion.security.payload.LoginRequest;
 import com.team1.obvalidacion.security.payload.MessageResponse;
 import com.team1.obvalidacion.security.payload.RegisterRequest;
-import org.apache.logging.log4j.message.Message;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
@@ -20,7 +20,7 @@ public interface UserService {
 
     ResponseEntity<JwtResponse> login(LoginRequest request);
 
-    ResponseEntity<User> update(User user);
+    ResponseEntity<User> patch(Long id, Map<Object, Object> fields);
 
     ResponseEntity delete(Long id);
 

@@ -118,6 +118,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findById(id);
         String password = userRepository.findById(id).get().getPassword();
         String email = userRepository.findById(id).get().getEmail();
+        boolean isValidated = userRepository.findById(id).get().isValidated();
         if (user.isPresent()) {
             fields.forEach((key, value) -> {
                 Field field = ReflectionUtils.findField(User.class, (String) key);
@@ -125,15 +126,20 @@ public class UserServiceImpl implements UserService {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, user.get(), value);
             });
-            if (user.get().isRejected() && user.get().isValidated()) {
-                user.get().setRejected(false);
-                user.get().setValidated(false);
-            }
-            if (user.get().isRejected() && !user.get().isValidated()) {
-                if (userRepository.findById(id).get().getFrontId() != null)
-                cloudinaryService.deleteFrontId(user.get().getFrontId().getCloudinaryId());
-                if (userRepository.findById(id).get().getBackId() != null)
-                cloudinaryService.deleteBackId(user.get().getBackId().getCloudinaryId());
+            if (!isValidated) {
+                if (user.get().isRejected() && user.get().isValidated()) {
+                    user.get().setRejected(false);
+                    user.get().setValidated(false);
+                }
+                if (user.get().isRejected() && !user.get().isValidated()) {
+                    if (userRepository.findById(id).get().getFrontId() != null)
+                        cloudinaryService.deleteFrontId(user.get().getFrontId().getCloudinaryId());
+                    if (userRepository.findById(id).get().getBackId() != null)
+                        cloudinaryService.deleteBackId(user.get().getBackId().getCloudinaryId());
+                    user.get().setRejected(false);
+                }
+            } else{
+                user.get().setValidated(true);
                 user.get().setRejected(false);
             }
             // Control for data

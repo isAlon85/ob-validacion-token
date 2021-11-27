@@ -41,9 +41,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Autowired
-    private UserRepository userRepository;
-
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping(ROOT + "/users")
     @ApiOperation("Find all Users in DB")

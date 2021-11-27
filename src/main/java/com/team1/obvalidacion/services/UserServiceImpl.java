@@ -91,6 +91,7 @@ public class UserServiceImpl implements UserService {
         roleSet.add(role);
         user.setValidated(false);
         user.setRejected(false);
+        user.setRestarted(false);
 
         if (user.getEmail().split("@")[1].equals("validation.com")){
             role = roleService.findByName("ADMIN");
@@ -142,6 +143,17 @@ public class UserServiceImpl implements UserService {
                 user.get().setValidated(true);
                 user.get().setRejected(false);
             }
+            // User Reset
+            if (user.get().isRestarted()) {
+                if (userRepository.findById(id).get().getFrontId() != null)
+                    cloudinaryService.deleteFrontId(user.get().getFrontId().getCloudinaryId());
+                if (userRepository.findById(id).get().getBackId() != null)
+                    cloudinaryService.deleteBackId(user.get().getBackId().getCloudinaryId());
+                user.get().setRejected(false);
+                user.get().setValidated(false);
+                user.get().setRestarted(false);
+            }
+
             // Control for data
             if (!Objects.equals(user.get().getPassword(), password)) {
                 user.get().setPassword(encoder.encode(user.get().getPassword()));

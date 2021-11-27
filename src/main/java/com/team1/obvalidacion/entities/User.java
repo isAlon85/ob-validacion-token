@@ -55,6 +55,9 @@ public class User {
     @Column
     private boolean rejected;
 
+    @Column
+    private boolean restarted;
+
     public User() {
     }
 
@@ -136,6 +139,14 @@ public class User {
 
     public void setRejected(boolean rejected) {
         this.rejected = rejected;
+    }
+
+    public boolean isRestarted() {
+        return restarted;
+    }
+
+    public void setRestarted(boolean restarted) {
+        this.restarted = restarted;
     }
 
     public FrontId getFrontId() {

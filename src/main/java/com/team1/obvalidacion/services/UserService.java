@@ -7,6 +7,7 @@ import com.team1.obvalidacion.security.payload.MessageResponse;
 import com.team1.obvalidacion.security.payload.RegisterRequest;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public interface UserService {
 
     ResponseEntity<JwtResponse> login(LoginRequest request);
 
-    ResponseEntity<User> patch(Long id, Map<Object, Object> fields);
+    ResponseEntity<User> patch(Long id, Map<Object, Object> fields) throws IOException;
 
     ResponseEntity delete(Long id);
 

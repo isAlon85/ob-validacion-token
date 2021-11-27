@@ -2,6 +2,7 @@ package com.team1.obvalidacion.services;
 
 import com.team1.obvalidacion.entities.Role;
 import com.team1.obvalidacion.entities.User;
+import com.team1.obvalidacion.repositories.RoleRepository;
 import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
 import com.team1.obvalidacion.security.payload.JwtResponse;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -46,7 +48,13 @@ public class UserServiceImpl implements UserService {
     private RoleService roleService;
 
     @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private BCryptPasswordEncoder bcryptEncoder;
+
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     @Override
     public ResponseEntity<List<User>> findAll(){
@@ -102,19 +110,44 @@ public class UserServiceImpl implements UserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtTokenUtil.generateToken(authentication);
         Optional<User> user = userRepository.findByUsername(loginRequest.getUsername());
-        //UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(new JwtResponse(jwt, user.get().getName(), user.get().getSurname(), user.get().getRoles()));
     }
 
     @Override
-    public ResponseEntity<User> patch(Long id, Map<Object, Object> fields){
+    public ResponseEntity<User> patch(Long id, Map<Object, Object> fields) throws IOException {
         Optional<User> user = userRepository.findById(id);
+        String password = userRepository.findById(id).get().getPassword();
+        String email = userRepository.findById(id).get().getEmail();
         if (user.isPresent()) {
             fields.forEach((key, value) -> {
                 Field field = ReflectionUtils.findField(User.class, (String) key);
+                assert field != null;
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, user.get(), value);
             });
+            if (user.get().isRejected() && user.get().isValidated()) {
+                user.get().setRejected(false);
+                user.get().setValidated(false);
+            }
+            if (user.get().isRejected() && !user.get().isValidated()) {
+                if (userRepository.findById(id).get().getFrontId() != null)
+                cloudinaryService.deleteFrontId(user.get().getFrontId().getCloudinaryId());
+                if (userRepository.findById(id).get().getBackId() != null)
+                cloudinaryService.deleteBackId(user.get().getBackId().getCloudinaryId());
+                user.get().setRejected(false);
+            }
+            // Control for data
+            if (!Objects.equals(user.get().getPassword(), password)) {
+                user.get().setPassword(encoder.encode(user.get().getPassword()));
+            }
+            if (!user.get().getEmail().contains("@")) {
+                user.get().setEmail(email);
+            }
+            user.get().setUsername(user.get().getEmail());
+            Set<Role> roleUser =new HashSet<>();
+            roleUser.add(roleRepository.findRoleByName("USER"));
+            user.get().setRoles(roleUser);
+            // Save user to Repository
             User result = userRepository.save(user.get());
             return ResponseEntity.ok(result);
         }

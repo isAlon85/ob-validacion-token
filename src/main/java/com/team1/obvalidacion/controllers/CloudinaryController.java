@@ -1,5 +1,6 @@
 package com.team1.obvalidacion.controllers;
 
+import com.team1.obvalidacion.security.payload.MessageResponse;
 import com.team1.obvalidacion.services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,9 +22,13 @@ public class CloudinaryController {
     CloudinaryService cloudinaryService;
 
     @PostMapping("/uploadfront")
-    public ResponseEntity<Map> uploadFrontId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        Map result = cloudinaryService.uploadFrontId(multipartFile, req);
-        return new ResponseEntity(result, HttpStatus.OK);
+    public ResponseEntity<MessageResponse> uploadFrontId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
+        boolean result = cloudinaryService.uploadFrontId(multipartFile, req);
+        if (result) {
+            return new ResponseEntity(new MessageResponse("Image uploaded OK"), HttpStatus.OK);
+        } else {
+            return new ResponseEntity(new MessageResponse("Image already uploaded"), HttpStatus.CONFLICT);
+        }
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

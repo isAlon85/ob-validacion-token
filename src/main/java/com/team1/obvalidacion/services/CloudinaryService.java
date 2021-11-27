@@ -55,24 +55,27 @@ public class CloudinaryService {
         cloudinary = new Cloudinary(valuesMap);
     }
 
-    public Map uploadFrontId(MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        File file = convert(multipartFile);
-        FrontId frontId = new FrontId();
-        Map result = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
-        // Save frontId data from image
-        result.forEach((key, value) -> {
-            if (Objects.equals(key, "secure_url")) frontId.setUrl((String) value);
-            if (Objects.equals(key, "public_id")) frontId.setCloudinaryId((String) value);
-        });
-        frontIdRepository.save(frontId);
+    public boolean uploadFrontId(MultipartFile multipartFile, HttpServletRequest req) throws IOException {
         //Retrieving username from Token
         String authToken = req.getHeader(HEADER_STRING).replace(TOKEN_PREFIX,"");
         String username = jwtTokenUtil.getUsernameFromToken(authToken);
-        //Connecting picture with proper User
-        Optional<User> user = userRepository.findByUsername(username);
-        user.get().setFrontId(frontId);
-        userRepository.save(user.get());
-        return result;
+        if (userRepository.findByUsername(username).get().getFrontId() == null){
+            File file = convert(multipartFile);
+            FrontId frontId = new FrontId();
+            Map result = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
+            // Save frontId data from image
+            result.forEach((key, value) -> {
+                if (Objects.equals(key, "secure_url")) frontId.setUrl((String) value);
+                if (Objects.equals(key, "public_id")) frontId.setCloudinaryId((String) value);
+            });
+            frontIdRepository.save(frontId);
+            //Connecting picture with proper User
+            Optional<User> user = userRepository.findByUsername(username);
+            user.get().setFrontId(frontId);
+            userRepository.save(user.get());
+            return true;
+        }
+        return false;
     }
 
     public Map deleteFrontId(String id) throws IOException {

@@ -1,7 +1,6 @@
 package com.team1.obvalidacion.controllers;
 
 import com.team1.obvalidacion.entities.User;
-import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
 import com.team1.obvalidacion.security.payload.JwtResponse;
 import com.team1.obvalidacion.security.payload.LoginRequest;
@@ -11,7 +10,6 @@ import com.team1.obvalidacion.services.UserServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,17 +50,20 @@ public class UserController {
     @GetMapping(ROOT + "/users/" + "{id}")
     @ApiOperation("Find a User in DB by ID")
     public ResponseEntity<User> findOneById(@PathVariable Long id) {
-        return userService.findOneById(id);
+        ResponseEntity<User> result = userService.findOneById(id);
+        if (result.getStatusCode().equals(HttpStatus.NOT_FOUND))
+            log.warn("User doesn't exist in DB");
+        return result;
     }
 
     @PostMapping(ROOT + "/auth/register")
     @ApiOperation("Register a User in DB with a JSON")
     public ResponseEntity<MessageResponse> register(@RequestBody RegisterRequest signUpRequest) {
         ResponseEntity<MessageResponse> result = userService.register(signUpRequest);
-
         if (result.getStatusCode().equals(HttpStatus.BAD_REQUEST))
-            log.warn("Trying to create a User with ID or email/username is already used");
-
+            log.warn("Email field wasn't filled with an email address");
+        if (result.getStatusCode().equals(HttpStatus.CONFLICT))
+            log.warn("Email is already used");
         return result;
     }
 
@@ -70,25 +71,16 @@ public class UserController {
     @ApiOperation("Login with a JSON")
     public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
         ResponseEntity<JwtResponse> result = userService.login(loginRequest);
-
-        if (result.getStatusCode().equals(HttpStatus.BAD_REQUEST))
-            log.warn("Trying to create a User with ID or email/username is already used");
-
         return result;
     }
 
     @PatchMapping(ROOT + "/users/" + "{id}")
     @ApiOperation("Update a User in DB with a JSON")
     public ResponseEntity<User> patchUser(@PathVariable Long id, @RequestBody Map<Object, Object> fields) throws IOException {
-         ResponseEntity<User> result = userService.patch(id, fields);
-
-         if (result.getStatusCode().equals(HttpStatus.BAD_REQUEST))
-             log.warn("Trying to update a User without ID");
-
-         if (result.getStatusCode().equals(HttpStatus.NOT_FOUND))
-             log.warn("Trying to update a User with a non existing ID");
-
-         return result;
+        ResponseEntity<User> result = userService.patch(id, fields);
+        if (result.getStatusCode().equals(HttpStatus.NOT_FOUND))
+            log.warn("User doesn't exist in DB");
+        return result;
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -96,23 +88,20 @@ public class UserController {
     @ApiOperation("Delete a User in DB by ID")
     public ResponseEntity delete(@PathVariable Long id) {
         ResponseEntity result = userService.delete(id);
-
         if (result.getStatusCode().equals(HttpStatus.NOT_FOUND))
             log.warn("Trying to delete a User with a non existing ID");
-
         return result;
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping(ROOT + "/users/" + "restartDB")
+    @ApiOperation("Delete all users")
     public ResponseEntity deleteAll(@RequestHeader HttpHeaders headers) {
         ResponseEntity result = userService.deleteAll();
-
         if (result.getStatusCode().equals(HttpStatus.NOT_FOUND))
             log.warn("The DB is already empty");
         else
             log.warn("Deleting all by request of " + headers.get("User-Agent"));
-
         return result;
     }
 }

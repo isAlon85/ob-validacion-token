@@ -79,8 +79,10 @@ public class CloudinaryService {
         //Connecting picture with proper User
         FrontId frontId = frontIdRepository.findByCloudinaryId(id);
         Optional<User> user = userRepository.findByFrontId(frontId);
-        user.get().setFrontId(null);
-        userRepository.save(user.get());
+        if (user.isPresent()) {
+            user.get().setFrontId(null);
+            userRepository.save(user.get());
+        }
         //Deleting frontId
         Map result = cloudinary.uploader().destroy(id, ObjectUtils.emptyMap());
         frontIdRepository.delete(frontIdRepository.findByCloudinaryId(id));

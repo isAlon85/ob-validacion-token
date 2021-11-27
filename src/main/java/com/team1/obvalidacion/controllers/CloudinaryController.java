@@ -1,7 +1,10 @@
 package com.team1.obvalidacion.controllers;
 
 import com.team1.obvalidacion.security.payload.MessageResponse;
-import com.team1.obvalidacion.services.CloudinaryService;
+import com.team1.obvalidacion.services.CloudinaryServiceImpl;
+import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,36 +21,62 @@ import java.util.Map;
 @CrossOrigin
 public class CloudinaryController {
 
+    private final Logger log = LoggerFactory.getLogger(CloudinaryController.class);
+
     @Autowired
-    CloudinaryService cloudinaryService;
+    CloudinaryServiceImpl cloudinaryServiceImpl;
 
     @PostMapping("/uploadfront")
+    @ApiOperation("Upload front ID image")
     public ResponseEntity<MessageResponse> uploadFrontId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        boolean result = cloudinaryService.uploadFrontId(multipartFile, req);
+        boolean result = cloudinaryServiceImpl.uploadFrontId(multipartFile, req);
         if (result) {
-            return new ResponseEntity(new MessageResponse("Image uploaded OK"), HttpStatus.OK);
+            log.info("Front ID uploaded successful");
+            return new ResponseEntity(new MessageResponse("Front ID uploaded successful"), HttpStatus.OK);
         } else {
-            return new ResponseEntity(new MessageResponse("Image already uploaded"), HttpStatus.CONFLICT);
+            log.error("Front ID already uploaded");
+            return new ResponseEntity(new MessageResponse("Front ID already uploaded"), HttpStatus.CONFLICT);
         }
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/deletefront/{id}")
+    @ApiOperation("Delete front ID image")
     public ResponseEntity<Map> uploadFrontId (@PathVariable("id") String id) throws IOException {
-        Map result = cloudinaryService.deleteFrontId(id);
-        return new ResponseEntity(result, HttpStatus.OK);
+        boolean result = cloudinaryServiceImpl.deleteFrontId(id);
+        if (result) {
+            log.info("Front ID deleted successful");
+            return new ResponseEntity(new MessageResponse("Front ID deleted successful"), HttpStatus.OK);
+        } else {
+            log.error("Front ID doesn't exist");
+            return new ResponseEntity(new MessageResponse("Front ID doesn't exist"), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/uploadback")
-    public ResponseEntity<Map> uploadbackId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        Map result = cloudinaryService.uploadBackId(multipartFile, req);
-        return new ResponseEntity(result, HttpStatus.OK);
+    @ApiOperation("Upload back ID image")
+    public ResponseEntity<MessageResponse> uploadBackId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
+        boolean result = cloudinaryServiceImpl.uploadBackId(multipartFile, req);
+        if (result) {
+            log.info("Back ID uploaded successful");
+            return new ResponseEntity(new MessageResponse("Back ID uploaded successful"), HttpStatus.OK);
+        } else {
+            log.error("Back ID already uploaded");
+            return new ResponseEntity(new MessageResponse("Back ID already uploaded"), HttpStatus.CONFLICT);
+        }
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/deleteback/{id}")
-    public ResponseEntity<Map> uploadbackId (@PathVariable("id") String id) throws IOException {
-        Map result = cloudinaryService.deleteBackId(id);
-        return new ResponseEntity(result, HttpStatus.OK);
+    @ApiOperation("Delete back ID image")
+    public ResponseEntity<Map> uploadBackId (@PathVariable("id") String id) throws IOException {
+        boolean result = cloudinaryServiceImpl.deleteBackId(id);
+        if (result) {
+            log.info("Back ID deleted successful");
+            return new ResponseEntity(new MessageResponse("Back ID deleted successful"), HttpStatus.OK);
+        } else {
+            log.error("Back ID doesn't exist");
+            return new ResponseEntity(new MessageResponse("Back ID doesn't exist"), HttpStatus.BAD_REQUEST);
+        }
     }
 }

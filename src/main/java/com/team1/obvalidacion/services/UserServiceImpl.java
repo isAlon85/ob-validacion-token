@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bcryptEncoder;
 
     @Autowired
-    CloudinaryService cloudinaryService;
+    CloudinaryServiceImpl cloudinaryServiceImpl;
 
     @Override
     public ResponseEntity<List<User>> findAll(){
@@ -83,24 +83,26 @@ public class UserServiceImpl implements UserService {
                     .status(HttpStatus.CONFLICT)
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
-        // Create new user's account
-        User user = new User(encoder.encode(signUpRequest.getPassword()), signUpRequest.getEmail(), signUpRequest.getName(), signUpRequest.getSurname());
+        if (signUpRequest.getEmail().contains("@")) {
+            // Create new user's account
+            User user = new User(encoder.encode(signUpRequest.getPassword()), signUpRequest.getEmail(), signUpRequest.getName(), signUpRequest.getSurname());
 
-        Role role = roleService.findByName("USER");
-        Set<Role> roleSet = new HashSet<>();
-        roleSet.add(role);
-        user.setValidated(false);
-        user.setRejected(false);
-        user.setRestarted(false);
-
-        if (user.getEmail().split("@")[1].equals("validation.com")){
-            role = roleService.findByName("ADMIN");
+            Role role = roleService.findByName("USER");
+            Set<Role> roleSet = new HashSet<>();
             roleSet.add(role);
-            user.setValidated(true);
-        }
-        user.setRoles(roleSet);
-        userRepository.save(user);
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+            user.setValidated(false);
+            user.setRejected(false);
+            user.setRestarted(false);
+
+            if (user.getEmail().split("@")[1].equals("validation.com")) {
+                role = roleService.findByName("ADMIN");
+                roleSet.add(role);
+                user.setValidated(true);
+            }
+            user.setRoles(roleSet);
+            userRepository.save(user);
+            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        } else return ResponseEntity.badRequest().body(new MessageResponse("Email provided isn't a proper email address"));
     }
 
     @Override
@@ -134,9 +136,9 @@ public class UserServiceImpl implements UserService {
                 }
                 if (user.get().isRejected() && !user.get().isValidated()) {
                     if (userRepository.findById(id).get().getFrontId() != null)
-                        cloudinaryService.deleteFrontId(user.get().getFrontId().getCloudinaryId());
+                        cloudinaryServiceImpl.deleteFrontId(user.get().getFrontId().getCloudinaryId());
                     if (userRepository.findById(id).get().getBackId() != null)
-                        cloudinaryService.deleteBackId(user.get().getBackId().getCloudinaryId());
+                        cloudinaryServiceImpl.deleteBackId(user.get().getBackId().getCloudinaryId());
                     user.get().setRejected(false);
                 }
             } else{
@@ -146,9 +148,9 @@ public class UserServiceImpl implements UserService {
             // User Reset
             if (user.get().isRestarted()) {
                 if (userRepository.findById(id).get().getFrontId() != null)
-                    cloudinaryService.deleteFrontId(user.get().getFrontId().getCloudinaryId());
+                    cloudinaryServiceImpl.deleteFrontId(user.get().getFrontId().getCloudinaryId());
                 if (userRepository.findById(id).get().getBackId() != null)
-                    cloudinaryService.deleteBackId(user.get().getBackId().getCloudinaryId());
+                    cloudinaryServiceImpl.deleteBackId(user.get().getBackId().getCloudinaryId());
                 user.get().setRejected(false);
                 user.get().setValidated(false);
                 user.get().setRestarted(false);

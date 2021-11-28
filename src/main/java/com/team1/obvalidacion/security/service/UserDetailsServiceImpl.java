@@ -35,6 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 user.getUsername(),user.getPassword(),getAuthority(user));
     }
 
+    // Meter roles en el JWT
     private Set<SimpleGrantedAuthority> getAuthority(User user) {
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
         user.getRoles().forEach(role -> {

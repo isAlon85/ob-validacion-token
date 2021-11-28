@@ -27,4 +27,6 @@ public interface UserService {
 
     ResponseEntity deleteAll();
 
+    ResponseEntity<User> whoami (String username);
+
 }

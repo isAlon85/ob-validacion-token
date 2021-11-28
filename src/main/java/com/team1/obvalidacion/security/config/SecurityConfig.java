@@ -57,11 +57,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      * Configuracion global de CORS para toda la aplicacion
      */
     @Bean
-    CorsConfigurationSource corsConfigurationSource()
-
-    {
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost"/*, "https://angular-springboot-*.vercel.app"*/));
+        //configuration.setAllowedOrigins(List.of("http://localhost"/*, "https://angular-springboot-*.vercel.app"*/));
         configuration.setAllowedOriginPatterns(List.of("http://localhost:3000"/*, "https://ob-angular-spring.vercel.app*/));
         configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
         configuration.setAllowedHeaders(List.of("Access-Control-Allow-Origin", "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
@@ -71,7 +69,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    // ========================= OVERRIDE: SOBREESCRIBIR FUNCIONALIDAD SECURITY POR DEFECTO ======
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());

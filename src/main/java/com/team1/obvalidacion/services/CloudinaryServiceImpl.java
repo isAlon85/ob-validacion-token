@@ -103,7 +103,7 @@ public class CloudinaryServiceImpl implements CloudinaryService{
             File file = convert(multipartFile);
             BackId backId = new BackId();
             Map result = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
-            // Save frontId data from image
+            // Save backId data from image
             result.forEach((key, value) -> {
                 if (Objects.equals(key, "secure_url")) backId.setUrl((String) value);
                 if (Objects.equals(key, "public_id")) backId.setCloudinaryId((String) value);
@@ -127,7 +127,7 @@ public class CloudinaryServiceImpl implements CloudinaryService{
                 user.get().setBackId(null);
                 userRepository.save(user.get());
             }
-            //Deleting frontId
+            //Deleting backId
             Map result = cloudinary.uploader().destroy(id, ObjectUtils.emptyMap());
             backIdRepository.delete(backIdRepository.findByCloudinaryId(id));
             return true;

@@ -197,5 +197,16 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteAll();
         return ResponseEntity.noContent().build();
     }
+
+    @Override
+    public ResponseEntity<User> whoami(String username){
+        Optional<User> regUserOpt = userRepository.findByUsername(username);
+
+        if (regUserOpt.isPresent())
+            return ResponseEntity.ok(regUserOpt.get());
+        else
+            return ResponseEntity.notFound().build();
+    }
+
 }
 

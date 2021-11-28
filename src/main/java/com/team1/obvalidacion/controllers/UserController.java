@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -104,4 +105,15 @@ public class UserController {
             log.warn("Deleting all by request of " + headers.get("User-Agent"));
         return result;
     }
+
+    @GetMapping(ROOT + "/whoami")
+    @ApiOperation("Return logged user from JWT token")
+    public ResponseEntity<User> whoami(@CurrentSecurityContext(expression="authentication?.name")
+                                String username) {
+        ResponseEntity<User> result = userService.whoami(username);
+        if (result.getStatusCode().equals(HttpStatus.NOT_FOUND))
+            log.warn("User doesn't exist in DB");
+        return result;
+    }
+
 }

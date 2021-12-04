@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,8 +29,9 @@ public class CloudinaryController {
 
     @PostMapping("/uploadfront")
     @ApiOperation("Upload front ID image")
-    public ResponseEntity<MessageResponse> uploadFrontId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        boolean result = cloudinaryServiceImpl.uploadFrontId(multipartFile, req);
+    public ResponseEntity<MessageResponse> uploadFrontId (@RequestParam MultipartFile multipartFile, @CurrentSecurityContext(expression="authentication?.name")
+            String username) throws IOException {
+        boolean result = cloudinaryServiceImpl.uploadFrontId(multipartFile, username);
         if (result) {
             log.info("Front ID uploaded successful");
             return new ResponseEntity(new MessageResponse("Front ID uploaded successful"), HttpStatus.OK);
@@ -55,8 +57,9 @@ public class CloudinaryController {
 
     @PostMapping("/uploadback")
     @ApiOperation("Upload back ID image")
-    public ResponseEntity<MessageResponse> uploadBackId (@RequestParam MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        boolean result = cloudinaryServiceImpl.uploadBackId(multipartFile, req);
+    public ResponseEntity<MessageResponse> uploadBackId (@RequestParam MultipartFile multipartFile, @CurrentSecurityContext(expression="authentication?.name")
+            String username) throws IOException {
+        boolean result = cloudinaryServiceImpl.uploadBackId(multipartFile, username);
         if (result) {
             log.info("Back ID uploaded successful");
             return new ResponseEntity(new MessageResponse("Back ID uploaded successful"), HttpStatus.OK);

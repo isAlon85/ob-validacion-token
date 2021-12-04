@@ -11,6 +11,7 @@ import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,10 +56,11 @@ public class CloudinaryServiceImpl implements CloudinaryService{
         cloudinary = new Cloudinary(valuesMap);
     }
 
-    public boolean uploadFrontId(MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        //Retrieving username from Token
-        String authToken = req.getHeader(HEADER_STRING).replace(TOKEN_PREFIX,"");
-        String username = jwtTokenUtil.getUsernameFromToken(authToken);
+    public boolean uploadFrontId(MultipartFile multipartFile, @CurrentSecurityContext(expression="authentication?.name")
+            String username) throws IOException {
+//        Retrieving username from Token
+//        String authToken = req.getHeader(HEADER_STRING).replace(TOKEN_PREFIX,"");
+//        String username = jwtTokenUtil.getUsernameFromToken(authToken);
         if (userRepository.findByUsername(username).get().getFrontId() == null){
             File file = convert(multipartFile);
             FrontId frontId = new FrontId();
@@ -95,10 +97,11 @@ public class CloudinaryServiceImpl implements CloudinaryService{
         return false;
     }
 
-    public boolean uploadBackId(MultipartFile multipartFile, HttpServletRequest req) throws IOException {
-        //Retrieving username from Token
-        String authToken = req.getHeader(HEADER_STRING).replace(TOKEN_PREFIX, "");
-        String username = jwtTokenUtil.getUsernameFromToken(authToken);
+    public boolean uploadBackId(MultipartFile multipartFile, @CurrentSecurityContext(expression="authentication?.name")
+            String username) throws IOException {
+//        Retrieving username from Token
+//        String authToken = req.getHeader(HEADER_STRING).replace(TOKEN_PREFIX, "");
+//        String username = jwtTokenUtil.getUsernameFromToken(authToken);
         if (userRepository.findByUsername(username).get().getBackId() == null) {
             File file = convert(multipartFile);
             BackId backId = new BackId();

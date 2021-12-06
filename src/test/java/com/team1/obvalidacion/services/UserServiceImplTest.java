@@ -5,11 +5,16 @@ import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
 import com.team1.obvalidacion.security.payload.LoginRequest;
 import com.team1.obvalidacion.security.payload.RegisterRequest;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
@@ -28,6 +33,9 @@ class UserServiceImplTest {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     @Test
     @Order(2)

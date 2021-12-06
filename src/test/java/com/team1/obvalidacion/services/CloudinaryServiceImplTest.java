@@ -65,8 +65,12 @@ class CloudinaryServiceImplTest {
     @Test
     @Order(2)
     void deleteFrontId() throws IOException {
-        assertEquals(true, cloudinaryService
-                .deleteFrontId(userRepository.findByUsername("mail@test.com").get().getFrontId().getCloudinaryId()));
+        String cloudinaryId = userRepository.findByUsername("mail@test.com").get().getFrontId().getCloudinaryId();
+
+        assertEquals(true, cloudinaryService.deleteFrontId(cloudinaryId));
+
+        //Delete twice
+        assertEquals(false, cloudinaryService.deleteFrontId(cloudinaryId));
     }
 
     @Test
@@ -87,7 +91,11 @@ class CloudinaryServiceImplTest {
     @Test
     @Order(2)
     void deleteBackId() throws IOException {
-        assertEquals(true, cloudinaryService
-                .deleteBackId(userRepository.findByUsername("mail@test.com").get().getBackId().getCloudinaryId()));
+        String cloudinaryId = userRepository.findByUsername("mail@test.com").get().getBackId().getCloudinaryId();
+
+        assertEquals(true, cloudinaryService.deleteBackId(cloudinaryId));
+
+        //Delete twice
+        assertEquals(false, cloudinaryService.deleteBackId(cloudinaryId));
     }
 }

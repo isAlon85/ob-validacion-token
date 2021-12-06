@@ -162,6 +162,8 @@ public class UserServiceImpl implements UserService {
             }
             if (!user.get().getEmail().contains("@")) {
                 user.get().setEmail(email);
+                user.get().setUsername(email);
+                return ResponseEntity.badRequest().build();
             }
             user.get().setUsername(user.get().getEmail());
             Set<Role> roleUser =new HashSet<>();
@@ -191,8 +193,9 @@ public class UserServiceImpl implements UserService {
         if (userRepository.count() == 0)
             return ResponseEntity.notFound().build();
 
+
         for (long i = 0; i < userRepository.count(); i++){
-            userRepository.findById(userRepository.count() - i).get().setRoles(null);
+            userRepository.findAll().iterator().next().setRoles(null);
             }
         userRepository.deleteAll();
         return ResponseEntity.noContent().build();

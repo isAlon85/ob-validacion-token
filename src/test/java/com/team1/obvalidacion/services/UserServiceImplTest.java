@@ -2,16 +2,13 @@ package com.team1.obvalidacion.services;
 
 import com.team1.obvalidacion.entities.User;
 import com.team1.obvalidacion.repositories.UserRepository;
+import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
 import com.team1.obvalidacion.security.payload.LoginRequest;
 import com.team1.obvalidacion.security.payload.RegisterRequest;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,23 +26,36 @@ class UserServiceImplTest {
     @Autowired
     private UserService userService;
 
-    @Test
-    @Order(1)
-    void findAll() {
-        assertEquals(2, userRepository.count());
-        assertEquals(HttpStatus.OK, userService.findAll().getStatusCode());
-    }
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     @Test
     @Order(2)
-    void findOneById() {
-        assertEquals("admin@validation.com", userService.findOneById(1L).getBody().getUsername());
-        assertEquals(HttpStatus.OK, userService.findOneById(2L).getStatusCode());
-        assertEquals(HttpStatus.NOT_FOUND, userService.findOneById(10L).getStatusCode());
+    void findAll() {
+        assertEquals(HttpStatus.NOT_FOUND, userService.findAll().getStatusCode());
+
+        RegisterRequest user6 = new RegisterRequest();
+        user6.setEmail("admin@validation.com");
+        user6.setName("Admin");
+        user6.setSurname("Admin");
+        user6.setPassword("Admin123");
+        userService.register(user6);
+        assertEquals(1, userService.findAll().getBody().size());
+        assertEquals(false, userService.findAll().getBody().isEmpty());
+        assertEquals(HttpStatus.OK, userService.findAll().getStatusCode());
+
     }
 
     @Test
     @Order(3)
+    void findOneById() {
+        Optional<User> user = userRepository.findByUsername("admin@validation.com");
+        assertEquals(HttpStatus.OK, userService.findOneById(user.get().getId()).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, userService.findOneById(9865L).getStatusCode());
+    }
+
+    @Test
+    @Order(4)
     void register() {
         RegisterRequest user3 = new RegisterRequest();
         user3.setEmail("mail@test.com");
@@ -71,7 +81,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     void login() {
         LoginRequest login3 = new LoginRequest();
         login3.setPassword("Test1234");
@@ -93,32 +103,98 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     void patch() throws IOException {
         HashMap<Object, Object> map = new HashMap<Object, Object>();
         Optional<User> user = userRepository.findByUsername("mail@test.com");
 
+        map.put("email", "novalido");
+        assertEquals(HttpStatus.BAD_REQUEST, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals("mail@test.com", userService.findOneById(user.get().getId()).getBody().getUsername());
+        assertEquals("mail@test.com", userService.findOneById(user.get().getId()).getBody().getEmail());
+        map.clear();
+
         map.put("email", "cambiomail@test.com");
         assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals("cambiomail@test.com", userService.findOneById(user.get().getId()).getBody().getEmail());
+        assertEquals("cambiomail@test.com", userService.findOneById(user.get().getId()).getBody().getUsername());
+        map.clear();
+
+        map.put("name", "Perico");
+        map.put("surname", "Delgado");
+        assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals("Perico", userService.findOneById(user.get().getId()).getBody().getName());
+        assertEquals("Delgado", userService.findOneById(user.get().getId()).getBody().getSurname());
+        map.clear();
+
+        map.put("password", "Falsa123");
+        assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals(true, userService.findOneById(user.get().getId()).getBody().getPassword().startsWith("$2a",0));
+        map.clear();
+
+        map.put("rejected", true);
+        map.put("validated", true);
+        assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isRejected());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isValidated());
+        map.clear();
+
+        map.put("rejected", true);
+        assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isRejected());
+        assertEquals(null, userService.findOneById(user.get().getId()).getBody().getFrontId());
+        assertEquals(null, userService.findOneById(user.get().getId()).getBody().getBackId());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isValidated());
+        map.clear();
 
         map.put("validated", true);
         assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals(true, userService.findOneById(user.get().getId()).getBody().isValidated());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isRejected());
+        map.clear();
+
+        map.put("restarted", true);
+        assertEquals(HttpStatus.OK, userService.patch(user.get().getId(), map).getStatusCode());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isValidated());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isRejected());
+        assertEquals(false, userService.findOneById(user.get().getId()).getBody().isRestarted());
+        map.clear();
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     void delete() {
-        Optional<User> user = userRepository.findByUsername("cambiomail@test.com");
-        assertEquals(HttpStatus.NO_CONTENT, userService.delete(user.get().getId()).getStatusCode());
+        Optional<User> user1 = userRepository.findByUsername("cambiomail@test.com");
+        assertEquals(HttpStatus.NO_CONTENT, userService.delete(user1.get().getId()).getStatusCode());
 
-        assertEquals(HttpStatus.NOT_FOUND, userService.delete(user.get().getId()).getStatusCode());
+        Optional<User> user2 = userRepository.findByUsername("admin@validation.com");
+        assertEquals(HttpStatus.NO_CONTENT, userService.delete(user2.get().getId()).getStatusCode());
+
+        // Deleting twice
+        assertEquals(HttpStatus.NOT_FOUND, userService.delete(user1.get().getId()).getStatusCode());
 
     }
 
     @Test
     @Order(7)
     void whoami() {
-        assertEquals(HttpStatus.NOT_FOUND, userService.whoami("usuarionologado").getStatusCode());
-        assertEquals(HttpStatus.OK, userService.whoami("admin@validation.com").getStatusCode());
+        // admin@validation.com Token valid until 2021/12/12
+        String username = jwtTokenUtil.getUsernameFromToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkB2YWxpZGF0aW9uLmNvbSIsInJvbGVzIjoiUk9MRV9BRE1JTixST0xFX1VTRVIiLCJpYXQiOjE2Mzg3NjQyNzEsImV4cCI6MTYzOTM2OTA3MX0.tcvLIwtDk90DcSjhPHY3CbAkmUBAiTyt9kY2tXCspGI");
+        assertEquals(HttpStatus.OK, userService.whoami(username).getStatusCode());
+
+        // hombreinmortal@postman.com Token valid until 2021/12/12
+        username = jwtTokenUtil.getUsernameFromToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJob21icmVpbm1vcnRhbEBwb3N0bWFuLmNvbSIsInJvbGVzIjoiUk9MRV9VU0VSIiwiaWF0IjoxNjM4NzY0MzIzLCJleHAiOjE2MzkzNjkxMjN9.cLcgN-TKi7r1w5kvcvFaDN7JHiA7RLn8lZzELNkR4Yo");
+        assertEquals(HttpStatus.NOT_FOUND, userService.whoami(username).getStatusCode());
     }
+
+    @Test
+    @Order(1)
+    void deleteAll() {
+        assertEquals(HttpStatus.NO_CONTENT, userService.deleteAll().getStatusCode());
+
+        // Deleting Twice
+        assertEquals(HttpStatus.NOT_FOUND, userService.deleteAll().getStatusCode());
+
+    }
+
 }

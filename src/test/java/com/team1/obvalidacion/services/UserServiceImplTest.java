@@ -5,16 +5,10 @@ import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.jwt.JwtTokenUtil;
 import com.team1.obvalidacion.security.payload.LoginRequest;
 import com.team1.obvalidacion.security.payload.RegisterRequest;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
@@ -38,7 +32,7 @@ class UserServiceImplTest {
     private CloudinaryService cloudinaryService;
 
     @Test
-    @Order(2)
+    @Order(1)
     void findAll() {
         assertEquals(HttpStatus.NOT_FOUND, userService.findAll().getStatusCode());
 
@@ -55,7 +49,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(3)
+    @Order(2)
     void findOneById() {
         Optional<User> user = userRepository.findByUsername("admin@validation.com");
         assertEquals(HttpStatus.OK, userService.findOneById(user.get().getId()).getStatusCode());
@@ -63,7 +57,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(4)
+    @Order(3)
     void register() {
         RegisterRequest user3 = new RegisterRequest();
         user3.setEmail("mail@test.com");
@@ -89,7 +83,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(5)
+    @Order(4)
     void login() {
         LoginRequest login3 = new LoginRequest();
         login3.setPassword("Test1234");
@@ -111,7 +105,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void patch() throws IOException {
         HashMap<Object, Object> map = new HashMap<Object, Object>();
         Optional<User> user = userRepository.findByUsername("mail@test.com");
@@ -170,13 +164,10 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void delete() {
         Optional<User> user1 = userRepository.findByUsername("cambiomail@test.com");
         assertEquals(HttpStatus.NO_CONTENT, userService.delete(user1.get().getId()).getStatusCode());
-
-        Optional<User> user2 = userRepository.findByUsername("admin@validation.com");
-        assertEquals(HttpStatus.NO_CONTENT, userService.delete(user2.get().getId()).getStatusCode());
 
         // Deleting twice
         assertEquals(HttpStatus.NOT_FOUND, userService.delete(user1.get().getId()).getStatusCode());
@@ -184,7 +175,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void whoami() {
         // admin@validation.com Token valid until 2021/12/12
         String username = jwtTokenUtil.getUsernameFromToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkB2YWxpZGF0aW9uLmNvbSIsInJvbGVzIjoiUk9MRV9BRE1JTixST0xFX1VTRVIiLCJpYXQiOjE2Mzg3NjQyNzEsImV4cCI6MTYzOTM2OTA3MX0.tcvLIwtDk90DcSjhPHY3CbAkmUBAiTyt9kY2tXCspGI");
@@ -196,7 +187,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(1)
+    @Order(8)
     void deleteAll() {
         assertEquals(HttpStatus.NO_CONTENT, userService.deleteAll().getStatusCode());
 

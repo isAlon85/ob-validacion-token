@@ -5,6 +5,7 @@ import com.team1.obvalidacion.repositories.FrontIdRepository;
 import com.team1.obvalidacion.repositories.UserRepository;
 import com.team1.obvalidacion.security.payload.RegisterRequest;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,11 @@ class CloudinaryServiceImplTest {
         userService.register(registerRequest);
     }
 
+    @After
+    public void afterCloudinary(){
+        userService.deleteAll();
+    }
+
     @Test
     @Order(1)
     void uploadFrontId() throws IOException {
@@ -74,9 +80,8 @@ class CloudinaryServiceImplTest {
     }
 
     @Test
-    @Order(1)
+    @Order(3)
     void uploadBackId() throws IOException {
-        beforeCloudinary();
 
         File fileItem = new File("dni.jpg");
         FileInputStream input = new FileInputStream(fileItem);
@@ -89,7 +94,7 @@ class CloudinaryServiceImplTest {
     }
 
     @Test
-    @Order(2)
+    @Order(4)
     void deleteBackId() throws IOException {
         String cloudinaryId = userRepository.findByUsername("mail@test.com").get().getBackId().getCloudinaryId();
 
@@ -97,5 +102,7 @@ class CloudinaryServiceImplTest {
 
         //Delete twice
         assertEquals(false, cloudinaryService.deleteBackId(cloudinaryId));
+
+        afterCloudinary();
     }
 }
